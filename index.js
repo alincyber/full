@@ -47,6 +47,70 @@ app.post("/make",async(req,res)=>{
     }
 });
 
+
+
+app.put("/upgrade", async (req, res) => {
+  try {
+    const { name, ...update } = req.body;
+    if (!name) {
+      return res.status(400).json({
+        message: "the name is require",
+      });
+    }
+    const updateuser = await User.findOneAndUpdate({ name: name }, update, {
+      new: true,
+    });
+
+    if (!updateuser) {
+      return res.status(404).json({
+        message: "user not found",
+      });
+    }
+    return res.status(200).json({
+      message: "user updated successfully",
+      data: updateuser,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "server error",
+      error: error.message,
+    });
+  }
+});
+
+app.delete("/remove", async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({
+        message: "name is required",
+      });
+    }
+
+    // ✅ correct method (delete using name)
+    const deletuser = await User.findOneAndDelete({ name: name });
+
+    // ✅ correct condition
+    if (!deletuser) {
+      return res.status(404).json({
+        message: "user not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "user deleted successfully",
+      data: deletuser,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "server internal error",
+      error: error.message,
+    });
+  }
+});
+
 // check the server is live 
 app.get("/read",(req,res)=>{
     return res.json("mera server live ho chuka h or mene ye post-man pe kr liye h")
@@ -57,3 +121,6 @@ app.get("/read",(req,res)=>{
 app.listen(PORT,(req,res)=>{
     console.log(`the server is running on the http://localhost:${PORT}`)
 });
+
+
+
