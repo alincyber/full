@@ -1,12 +1,10 @@
 const mongoose = require ("mongoose");
-const strict = require("node:assert/strict");
-const { timeStamp } = require("node:console");
 const {model,Schema} = mongoose;
-const UserSchema = ({
+const UserSchema = new Schema ({
     name:{type:String},
     phone:{type:String},
     email:{type:String},
     company:{type:String},
-},{timeStamp:true,versionkey:false,strict:false});
+},{versionkey:false,statics:false,timestamps:true});
 
-module.exports = ("user",UserSchema)
+module.exports = model("user",UserSchema)

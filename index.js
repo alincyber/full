@@ -12,16 +12,17 @@ mongoose.connect("mongodb://localhost:27017/full")
     console.log("the database wasm not responding")
 });
 
-
+app.use(express.json());
 // this is the post method API use for make the 
-app.post("/create",async(req,res)=>{
+app.post("/make",async(req,res)=>{
     try {
         const{name,phone,email,company}=req.body;
-        if(!name || !phone || !email || !company );
+        if(!name || !phone || !email || !company ){
         return res.status(400).json({
             message:"please enter all the feilds",
         });
-        const exist = await User.findOne({name});
+        }
+        const exist = await User.findOne({name:name});
         if (exist){
             return res.status(409).json({
                 message:"the user is already exist in database",
@@ -37,11 +38,11 @@ app.post("/create",async(req,res)=>{
         await userdata.save();
         return res.status(201).json({
             message:"new user is created",
-            data:exist,
+            data:userdata,
         });
     } catch (error) {
         return res.status(500).json({
-            message:"internal server error",
+            error:error.message,
         });
     }
 });
