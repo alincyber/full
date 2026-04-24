@@ -15,7 +15,7 @@ mongoose.connect("mongodb://localhost:27017/full")
 
 // check the server is live 
 app.get("/read",(req,res)=>{
-    return res.json("the server is live for work")
+    return res.json("mera server live ho chuka h or mene ye post-man pe kr liye h")
 });
 
 
