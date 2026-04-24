@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const User = require("./model/userdata");
 // connect the database.
-mongoose.connect("/")
+mongoose.connect("mongodb://localhost:27017/full")
 .then((result) => {
     console.log("the database waz work")
 }).catch((err) => {
