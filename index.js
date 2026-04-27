@@ -6,7 +6,7 @@ const User = require("./model/userdata");
 const dns = require("dns");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
-
+const multer = require("multer")
 const SECRET_KEY = "the_secret_key_1234";
 
 dns.setServers(['8.8.8.8','8.8.4.4']);
