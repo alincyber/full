@@ -1,19 +1,24 @@
-// import the tool(extenstion).
 const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
 const PORT = process.env.PORT || 5000;
 const User = require("./model/userdata");
-// connect the database.
-mongoose.connect("mongodb://localhost:27017/full")
+const dns = require ("dns");
+
+const jwt = require("jsonwebtoken");
+dns.setServers(['8.8.8.8','8.8.4.4']);
+
+
+mongoose.connect("mongodb+srv://ajayrajputwuy_db_user:12345ajay@cluster0.5ghry7t.mongodb.net/fullName?retryWrites=true&w=majority")
 .then((result) => {
     console.log("the database waz work")
 }).catch((err) => {
-    console.log("the database wasm not responding")
+    console.log("the database was not responding")
 });
 
 app.use(express.json());
-// this is the post method API use for make the 
+
+
 app.post("/make",async(req,res)=>{
     try {
         const{name,phone,email,company}=req.body;
@@ -88,10 +93,8 @@ app.delete("/remove", async (req, res) => {
       });
     }
 
-    // ✅ correct method (delete using name)
-    const deletuser = await User.findOneAndDelete({ name: name });
 
-    // ✅ correct condition
+    const deletuser = await User.findOneAndDelete({ name: name });
     if (!deletuser) {
       return res.status(404).json({
         message: "user not found",
@@ -111,13 +114,14 @@ app.delete("/remove", async (req, res) => {
   }
 });
 
-// check the server is live 
+
+
 app.get("/read",(req,res)=>{
     return res.json("mera server live ho chuka h or mene ye post-man pe kr liye h")
 });
 
 
-// check the port was in work
+
 app.listen(PORT,(req,res)=>{
     console.log(`the server is running on the http://localhost:${PORT}`)
 });
