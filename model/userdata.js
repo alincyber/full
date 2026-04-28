@@ -7,4 +7,4 @@ const UserSchema = new Schema ({
     company:{type:String},
 },{versionkey:false,statics:false,timestamps:true});
 
-module.exports = model("user",UserSchema)
+module.exports = model("User",UserSchema)

@@ -6,79 +6,149 @@ const User = require("./model/userdata");
 const dns = require("dns");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
-const multer = require("multer")
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
 const SECRET_KEY = "the_secret_key_1234";
 
-dns.setServers(['8.8.8.8','8.8.4.4']);
+/* =========================
+   DNS
+========================= */
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
+/* =========================
+   CREATE uploads FOLDER
+========================= */
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+
+/* =========================
+   MIDDLEWARE
+========================= */
 app.use(express.json());
-app.use(cors());   // ✅ FIXED
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+app.use("/uploads", express.static("uploads"));
 
-mongoose.connect("mongodb+srv://ajayrajputwuy_db_user:12345ajay@cluster0.5ghry7t.mongodb.net/fullName?retryWrites=true&w=majority")
-.then((result) => {
-    console.log("the database waz work")
-}).catch((err) => {
-    console.log("the database was not responding")
+/* =========================
+   DATABASE
+========================= */
+mongoose
+  .connect(
+    "mongodb+srv://ajayrajputwuy_db_user:12345ajay@cluster0.5ghry7t.mongodb.net/fullName?retryWrites=true&w=majority"
+  )
+  .then(() => {
+    console.log("the database was work");
+  })
+  .catch(() => {
+    console.log("the database was not responding");
+  });
+
+/* =========================
+   MULTER STORAGE
+========================= */
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+
+  filename: function (req, file, cb) {
+    const uniqueName =
+      Date.now() +
+      "-" +
+      Math.round(Math.random() * 1e9) +
+      path.extname(file.originalname);
+
+    cb(null, uniqueName);
+  }
 });
 
+/* =========================
+   FILE FILTER
+========================= */
+const fileFilter = (req, file, cb) => {
+  const allowed = [
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/webp"
+  ];
 
-app.post("/make", async (req, res) => {
-    try {
-        const { name, phone, email, company } = req.body;
+  if (allowed.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image files allowed"), false);
+  }
+};
 
-        if (!name || !phone || !email || !company) {
-            return res.status(400).json({
-                message: "please enter all the feilds",
-            });
-        }
-
-        const exist = await User.findOne({ name: name });
-        if (exist) {
-            return res.status(409).json({
-                message: "the user is already exist in database",
-                data: exist,
-            });
-        }
-
-        const token = jwt.sign({
-            name,
-            phone,
-            email,
-            company
-        }, SECRET_KEY);
-
-        // ✅ FIXED (save full data)
-        const newUser = new User({
-            name,
-            phone,
-            email,
-            company,
-            token
-        });
-
-        await newUser.save();
-
-        return res.status(201).json({
-            message: "new user is created",
-            data: newUser,   // ✅ FIXED
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            error: error.message,
-        });
-    }
+/* =========================
+   MULTER CONFIG
+========================= */
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024
+  }
 });
 
+/* =========================
+   CREATE USER + IMAGE
+   KEY NAME = image
+========================= */
+app.post("/make", upload.single("image"), async (req, res) => {
+  try {
+    const { name, phone, email, company } = req.body;
 
-app.put("/upgrade", async (req, res) => {
+    const token = jwt.sign(
+      { name, email },
+      SECRET_KEY,
+      { expiresIn: "1d" }
+    );
+
+    const newUser = new User({
+      name,
+      phone,
+      email,
+      company,
+      token,
+      image: req.file ? req.file.filename : null
+    });
+
+    await newUser.save();
+
+    return res.status(201).json({
+      message: "new user created",
+      token: token,
+      data: newUser,
+      imageUrl: req.file
+        ? `http://localhost:${PORT}/uploads/${req.file.filename}`
+        : null
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message
+    });
+  }
+});
+/* =========================
+   UPDATE USER + IMAGE
+========================= */
+app.put("/upgrade", upload.single("image"), async (req, res) => {
   try {
     const { name, ...update } = req.body;
 
     if (!name) {
       return res.status(400).json({
-        message: "the name is require",
+        message: "name is required"
       });
+    }
+
+    if (req.file) {
+      update.image = req.file.filename;
     }
 
     const updateuser = await User.findOneAndUpdate(
@@ -89,61 +159,84 @@ app.put("/upgrade", async (req, res) => {
 
     if (!updateuser) {
       return res.status(404).json({
-        message: "user not found",
+        message: "user not found"
       });
     }
 
     return res.status(200).json({
       message: "user updated successfully",
-      data: updateuser,
+      data: updateuser
     });
 
   } catch (error) {
     return res.status(500).json({
       message: "server error",
-      error: error.message,
+      error: error.message
     });
   }
 });
 
-
+/* =========================
+   DELETE USER
+========================= */
 app.delete("/remove", async (req, res) => {
   try {
     const { name } = req.body;
 
     if (!name) {
       return res.status(400).json({
-        message: "name is required",
+        message: "name is required"
       });
     }
 
-    const deletuser = await User.findOneAndDelete({ name: name });
+    const deletuser = await User.findOneAndDelete({ name });
 
     if (!deletuser) {
       return res.status(404).json({
-        message: "user not found",
+        message: "user not found"
       });
     }
 
     return res.status(200).json({
       message: "user deleted successfully",
-      data: deletuser,
+      data: deletuser
     });
 
   } catch (error) {
     return res.status(500).json({
       message: "server internal error",
-      error: error.message,
+      error: error.message
     });
   }
 });
 
-
+/* =========================
+   READ ROUTE
+========================= */
 app.get("/read", (req, res) => {
-    return res.json("mera server live ho chuka h or mene ye post-man pe kr liye h")
+  res.json({
+    message: "server live ho chuka hai"
+  });
 });
 
+/* =========================
+   ERROR HANDLER
+========================= */
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      message: err.message
+    });
+  }
 
+  return res.status(500).json({
+    message: err.message || "Server Error"
+  });
+});
+
+/* =========================
+   SERVER
+========================= */
 app.listen(PORT, () => {
-    console.log(`the server is running on the http://localhost:${PORT}`)
+  console.log(`the server is running on http://localhost:${PORT}`);
 });
