@@ -9,9 +9,10 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
+const nodemailer = require("nodemailer");
 const SECRET_KEY = "the_secret_key_1234";
-
+const dotenv = require("dotenv");
+dotenv.config();
 /* =========================
    DNS
 ========================= */
@@ -239,4 +240,142 @@ app.use((err, req, res, next) => {
 ========================= */
 app.listen(PORT, () => {
   console.log(`the server is running on http://localhost:${PORT}`);
+});
+
+
+
+// ===============================
+// FIX ONLY NODEMAILER + OTP PART
+// Put this ABOVE app.listen(...)
+// ===============================
+
+
+
+/* ======================
+   NODEMAILER + OTP SYSTEM
+====================== */
+
+console.log("EMAIL =", process.env.EMAIL);
+console.log("PASS =", process.env.PASS ? "Loaded" : "Missing");
+
+/* ======================
+   MULTI USER OTP STORE
+====================== */
+const otpStore = {};
+
+/* ======================
+   MAIL TRANSPORTER
+====================== */
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.PASS
+  }
+});
+
+/* ======================
+   SMTP TEST
+====================== */
+transporter.verify((error) => {
+  if (error) {
+    console.log("Mail Error:", error.message);
+  } else {
+    console.log("Mail Server Ready");
+  }
+});
+
+/* ======================
+   SEND OTP
+====================== */
+app.post("/send-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Email required"
+      });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    otpStore[email] = {
+      otp,
+      expires: Date.now() + 5 * 60 * 1000
+    };
+
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: email,
+      subject: "Your OTP Code",
+      html: `
+        <h2>Verification Code</h2>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        
+        
+        <p>This OTP expires in 5 minutes.</p>
+      `
+    });
+
+    return res.status(200).json({
+      message: "OTP sent successfully",
+      otp: otp
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message
+    });
+  }
+});
+
+/* ======================
+   VERIFY OTP
+====================== */
+app.post("/verify-otp", (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({
+      message: "Email and OTP required"
+    });
+  }
+
+  const userOTP = otpStore[email];
+
+  if (!userOTP) {
+    return res.status(400).json({
+      message: "No OTP found"
+    });
+  }
+  if (Date.now() > userOTP.expires) {
+  delete otpStore[email];
+
+  return res.status(410).json({
+    success: false,
+    message: "OTP expired. Please request a new one."
+  });
+}
+
+  if (Date.now() > userOTP.expires) {
+    delete otpStore[email];
+
+    return res.status(400).json({
+      message: "OTP expired"
+    });
+  }
+
+  if (userOTP.otp === otp) {
+    delete otpStore[email];
+
+    return res.status(200).json({
+      message: "OTP Verified Successfully"
+    });
+  }
+
+  return res.status(400).json({
+    message: "Invalid OTP"
+  });
 });
