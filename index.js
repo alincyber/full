@@ -483,8 +483,42 @@ app.post("/verify-otp", (req, res) => {
   });
 });
 
+// ********************//
+// scaling applicaion//
+//***************** *//
+
+const cluster = require("cluster");
+const os = require("os");
+const http = require("http");
+
+const totalCPUs = os.cpus().length;
+
+if (cluster.isPrimary) {
+  console.log("Master Process:", process.pid);
+  console.log("CPUs:", totalCPUs);
+
+  for (let i = 0; i < totalCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on("exit", (worker) => {
+    console.log("Worker died:", worker.process.pid);
+    cluster.fork(); // restart worker
+  });
+
+} else {
+  http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end("Handled by Worker: " + process.pid);
+  }).listen(5000);
+
+  console.log("Worker Started:", process.pid);
+}
 
 
+// *******************************//
+//************buffer*********** *//
+//***************************** */
 
 // import file system module
 console.log("the buffer is ready for work")
