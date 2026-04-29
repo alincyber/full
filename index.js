@@ -482,3 +482,49 @@ app.post("/verify-otp", (req, res) => {
     message: "Invalid OTP"
   });
 });
+
+
+
+
+// import file system module
+console.log("the buffer is ready for work")
+
+// create buffer from normal text
+const textBuffer = Buffer.from("Hello Ajay");
+
+// show raw bytes stored in buffer
+console.log(textBuffer);
+
+// convert buffer back into readable text
+console.log(textBuffer.toString());
+
+// save buffer data into a file
+fs.writeFileSync("message.txt", textBuffer);
+
+// read file data (comes as buffer)
+const fileData = fs.readFileSync("message.txt");
+
+// show file buffer
+console.log(fileData);
+
+// convert file buffer to text
+console.log(fileData.toString());
+
+// create read stream for file
+const stream = fs.createReadStream("message.txt");
+
+// when stream sends chunk of data
+stream.on("data", (chunk) => {
+
+    // chunk is also a buffer
+    console.log("Chunk Buffer:", chunk);
+
+    // convert chunk into text
+    console.log("Chunk Text:", chunk.toString());
+
+});
+
+// when stream finished
+stream.on("end", () => {
+    console.log("File Reading Completed");
+});
