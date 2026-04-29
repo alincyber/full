@@ -310,12 +310,115 @@ app.post("/send-otp", async (req, res) => {
       to: email,
       subject: "Your OTP Code",
       html: `
-        <h2>Verification Code</h2>
-        <p>Your OTP is:</p>
-        <h1>${otp}</h1>
-        
-        
-        <p>This OTP expires in 5 minutes.</p>
+       
+          <!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OTP Mail</title>
+</head>
+
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f1f5f9;padding:30px 10px;">
+<tr>
+<td align="center">
+
+<!-- Main Card -->
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:620px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.08);">
+
+<!-- Header -->
+<tr>
+<td align="center" style="padding:30px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#ffffff;">
+
+<div style="font-size:42px;line-height:42px;">🔐</div>
+
+<h1 style="margin:15px 0 5px;font-size:28px;font-weight:bold;">
+OTP Verification
+</h1>
+
+<p style="margin:0;font-size:14px;opacity:0.95;">
+Secure Login Access
+</p>
+
+</td>
+</tr>
+
+<!-- Body -->
+<tr>
+<td style="padding:35px 25px;text-align:center;">
+
+<h2 style="margin:0 0 12px;color:#111827;font-size:24px;">
+Hello 👋
+</h2>
+
+<p style="margin:0 0 22px;color:#475569;font-size:16px;line-height:1.7;">
+Use the verification code below to continue securely.
+</p>
+
+<!-- OTP Box -->
+<div style="
+display:inline-block;
+padding:18px 28px;
+background:#f0fdf4;
+border:2px dashed #22c55e;
+border-radius:14px;
+font-size:34px;
+font-weight:bold;
+letter-spacing:8px;
+color:#15803d;
+margin-bottom:18px;
+">
+${otp}
+</div>
+
+<p style="margin:10px 0 0;color:#eab308;font-size:15px;font-weight:bold;">
+⏰ Valid for 5 Minutes
+</p>
+
+<!-- Button -->
+<div style="margin-top:28px;">
+<a href="#"
+style="
+display:inline-block;
+padding:14px 28px;
+background:#16a34a;
+color:#ffffff;
+text-decoration:none;
+border-radius:10px;
+font-size:16px;
+font-weight:bold;
+">
+Verify Now
+</a>
+</div>
+
+<!-- Security Text -->
+<p style="margin:28px 0 0;color:#64748b;font-size:13px;line-height:1.6;">
+Never share this OTP with anyone.<br>
+If you did not request this code, ignore this email.
+</p>
+
+</td>
+</tr>
+
+<!-- Footer -->
+<tr>
+<td align="center" style="padding:18px;background:#f8fafc;color:#94a3b8;font-size:13px;">
+© 2026 Ajay Security System
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>
+
       `
     });
 
