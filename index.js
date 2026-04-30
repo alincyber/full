@@ -13,6 +13,7 @@ const nodemailer = require("nodemailer");
 const SECRET_KEY = "the_secret_key_1234";
 const dotenv = require("dotenv");
 dotenv.config();
+
 /* =========================
    DNS
 ========================= */
@@ -135,6 +136,7 @@ app.post("/make", upload.single("image"), async (req, res) => {
     });
   }
 });
+
 /* =========================
    UPDATE USER + IMAGE
 ========================= */
@@ -221,51 +223,13 @@ app.get("/read", (req, res) => {
 });
 
 /* =========================
-   ERROR HANDLER
-========================= */
-app.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    return res.status(400).json({
-      message: err.message
-    });
-  }
-
-  return res.status(500).json({
-    message: err.message || "Server Error"
-  });
-});
-
-/* =========================
-   SERVER
-========================= */
-app.listen(PORT, () => {
-  console.log(`the server is running on http://localhost:${PORT}`);
-});
-
-
-
-// ===============================
-// FIX ONLY NODEMAILER + OTP PART
-// Put this ABOVE app.listen(...)
-// ===============================
-
-
-
-/* ======================
    NODEMAILER + OTP SYSTEM
-====================== */
-
+========================= */
 console.log("EMAIL =", process.env.EMAIL);
 console.log("PASS =", process.env.PASS ? "Loaded" : "Missing");
 
-/* ======================
-   MULTI USER OTP STORE
-====================== */
 const otpStore = {};
 
-/* ======================
-   MAIL TRANSPORTER
-====================== */
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -274,9 +238,6 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-/* ======================
-   SMTP TEST
-====================== */
 transporter.verify((error) => {
   if (error) {
     console.log("Mail Error:", error.message);
@@ -285,9 +246,6 @@ transporter.verify((error) => {
   }
 });
 
-/* ======================
-   SEND OTP
-====================== */
 app.post("/send-otp", async (req, res) => {
   try {
     const { email } = req.body;
@@ -310,115 +268,50 @@ app.post("/send-otp", async (req, res) => {
       to: email,
       subject: "Your OTP Code",
       html: `
-       
-          <!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>OTP Mail</title>
-</head>
-
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
-
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f1f5f9;padding:30px 10px;">
-<tr>
-<td align="center">
-
-<!-- Main Card -->
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:620px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.08);">
-
-<!-- Header -->
-<tr>
-<td align="center" style="padding:30px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#ffffff;">
-
-<div style="font-size:42px;line-height:42px;">🔐</div>
-
-<h1 style="margin:15px 0 5px;font-size:28px;font-weight:bold;">
-OTP Verification
-</h1>
-
-<p style="margin:0;font-size:14px;opacity:0.95;">
-Secure Login Access
-</p>
-
-</td>
-</tr>
-
-<!-- Body -->
-<tr>
-<td style="padding:35px 25px;text-align:center;">
-
-<h2 style="margin:0 0 12px;color:#111827;font-size:24px;">
-Hello 👋
-</h2>
-
-<p style="margin:0 0 22px;color:#475569;font-size:16px;line-height:1.7;">
-Use the verification code below to continue securely.
-</p>
-
-<!-- OTP Box -->
-<div style="
-display:inline-block;
-padding:18px 28px;
-background:#f0fdf4;
-border:2px dashed #22c55e;
-border-radius:14px;
-font-size:34px;
-font-weight:bold;
-letter-spacing:8px;
-color:#15803d;
-margin-bottom:18px;
-">
-${otp}
-</div>
-
-<p style="margin:10px 0 0;color:#eab308;font-size:15px;font-weight:bold;">
-⏰ Valid for 5 Minutes
-</p>
-
-<!-- Button -->
-<div style="margin-top:28px;">
-<a href="#"
-style="
-display:inline-block;
-padding:14px 28px;
-background:#16a34a;
-color:#ffffff;
-text-decoration:none;
-border-radius:10px;
-font-size:16px;
-font-weight:bold;
-">
-Verify Now
-</a>
-</div>
-
-<!-- Security Text -->
-<p style="margin:28px 0 0;color:#64748b;font-size:13px;line-height:1.6;">
-Never share this OTP with anyone.<br>
-If you did not request this code, ignore this email.
-</p>
-
-</td>
-</tr>
-
-<!-- Footer -->
-<tr>
-<td align="center" style="padding:18px;background:#f8fafc;color:#94a3b8;font-size:13px;">
-© 2026 Ajay Security System
-</td>
-</tr>
-
-</table>
-
-</td>
-</tr>
-</table>
-
-</body>
-</html>
-
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+        <title>OTP Mail</title>
+        </head>
+        <body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f1f5f9;padding:30px 10px;">
+        <tr>
+        <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:620px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.08);">
+        <tr>
+        <td align="center" style="padding:30px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#ffffff;">
+        <div style="font-size:42px;line-height:42px;">🔐</div>
+        <h1 style="margin:15px 0 5px;font-size:28px;font-weight:bold;">OTP Verification</h1>
+        <p style="margin:0;font-size:14px;opacity:0.95;">Secure Login Access</p>
+        </td>
+        </tr>
+        <tr>
+        <td style="padding:35px 25px;text-align:center;">
+        <h2 style="margin:0 0 12px;color:#111827;font-size:24px;">Hello 👋</h2>
+        <p style="margin:0 0 22px;color:#475569;font-size:16px;line-height:1.7;">Use the verification code below to continue securely.</p>
+        <div style="display:inline-block;padding:18px 28px;background:#f0fdf4;border:2px dashed #22c55e;border-radius:14px;font-size:34px;font-weight:bold;letter-spacing:8px;color:#15803d;margin-bottom:18px;">
+        ${otp}
+        </div>
+        <p style="margin:10px 0 0;color:#eab308;font-size:15px;font-weight:bold;">⏰ Valid for 5 Minutes</p>
+        <div style="margin-top:28px;">
+        <a href="#" style="display:inline-block;padding:14px 28px;background:#16a34a;color:#ffffff;text-decoration:none;border-radius:10px;font-size:16px;font-weight:bold;">Verify Now</a>
+        </div>
+        <p style="margin:28px 0 0;color:#64748b;font-size:13px;line-height:1.6;">Never share this OTP with anyone.<br>If you did not request this code, ignore this email.</p>
+        </td>
+        </tr>
+        <tr>
+        <td align="center" style="padding:18px;background:#f8fafc;color:#94a3b8;font-size:13px;">
+        © 2026 Ajay Security System
+        </td>
+        </tr>
+        </table>
+        </td>
+        </tr>
+        </table>
+        </body>
+        </html>
       `
     });
 
@@ -434,9 +327,6 @@ If you did not request this code, ignore this email.
   }
 });
 
-/* ======================
-   VERIFY OTP
-====================== */
 app.post("/verify-otp", (req, res) => {
   const { email, otp } = req.body;
 
@@ -453,26 +343,16 @@ app.post("/verify-otp", (req, res) => {
       message: "No OTP found"
     });
   }
-  if (Date.now() > userOTP.expires) {
-  delete otpStore[email];
-
-  return res.status(410).json({
-    success: false,
-    message: "OTP expired. Please request a new one."
-  });
-}
 
   if (Date.now() > userOTP.expires) {
     delete otpStore[email];
-
-    return res.status(400).json({
-      message: "OTP expired"
+    return res.status(410).json({
+      message: "OTP expired. Please request a new one"
     });
   }
 
   if (userOTP.otp === otp) {
     delete otpStore[email];
-
     return res.status(200).json({
       message: "OTP Verified Successfully"
     });
@@ -483,82 +363,24 @@ app.post("/verify-otp", (req, res) => {
   });
 });
 
-// ********************//
-// scaling applicaion//
-//***************** *//
-
-const cluster = require("cluster");
-const os = require("os");
-const http = require("http");
-
-const totalCPUs = os.cpus().length;
-
-if (cluster.isPrimary) {
-  console.log("Master Process:", process.pid);
-  console.log("CPUs:", totalCPUs);
-
-  for (let i = 0; i < totalCPUs; i++) {
-    cluster.fork();
+/* =========================
+   ERROR HANDLER
+========================= */
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      message: err.message
+    });
   }
 
-  cluster.on("exit", (worker) => {
-    console.log("Worker died:", worker.process.pid);
-    cluster.fork(); // restart worker
+  return res.status(500).json({
+    message: err.message || "Server Error"
   });
-
-} else {
-  http.createServer((req, res) => {
-    res.writeHead(200);
-    res.end("Handled by Worker: " + process.pid);
-  }).listen(5000);
-
-  console.log("Worker Started:", process.pid);
-}
-
-
-// *******************************//
-//************buffer*********** *//
-//***************************** */
-
-// import file system module
-console.log("the buffer is ready for work")
-
-// create buffer from normal text
-const textBuffer = Buffer.from("Hello Ajay");
-
-// show raw bytes stored in buffer
-console.log(textBuffer);
-
-// convert buffer back into readable text
-console.log(textBuffer.toString());
-
-// save buffer data into a file
-fs.writeFileSync("message.txt", textBuffer);
-
-// read file data (comes as buffer)
-const fileData = fs.readFileSync("message.txt");
-
-// show file buffer
-console.log(fileData);
-
-// convert file buffer to text
-console.log(fileData.toString());
-
-// create read stream for file
-const stream = fs.createReadStream("message.txt");
-
-// when stream sends chunk of data
-stream.on("data", (chunk) => {
-
-    // chunk is also a buffer
-    console.log("Chunk Buffer:", chunk);
-
-    // convert chunk into text
-    console.log("Chunk Text:", chunk.toString());
-
 });
 
-// when stream finished
-stream.on("end", () => {
-    console.log("File Reading Completed");
+/* =========================
+   SERVER
+========================= */
+app.listen(PORT, () => {
+  console.log(`the server is running on http://localhost:${PORT}`);
 });
